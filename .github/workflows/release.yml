@@ -24,8 +24,6 @@ jobs:
         include:
           - platform: 'ubuntu-22.04'
             args: '--bundles deb,rpm'
-          - platform: 'ubuntu-22.04-arm'
-            args: '--bundles deb,rpm'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -68,6 +66,7 @@ jobs:
         with:
           tauriScript: bun run tauri
           tagName: ${{ github.event.release.tag_name || inputs.version }}
+          releaseName: ${{ github.event.release.name || inputs.version }}
           releaseId: ${{ github.event.release.id }}
           includeUpdaterJson: true
           args: ${{ matrix.args }} -vv
