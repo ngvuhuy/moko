@@ -1,0 +1,39 @@
+services:
+  jean-dev:
+    build: .
+    container_name: jean_container
+    environment:
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      # - LIBGL_ALWAYS_SOFTWARE=1
+      - GDK_BACKEND=wayland
+      - RUST_LOG=info
+      # Set to 1 to disable the memory-intensive web access dist watcher (vite build --watch)
+      # This means the UI IN BROWSER won't hot reload IF we use localhost:3456 web access feature
+      # The Tauri app will hot reload as normal
+      - JEAN_DISABLE_WEB_WATCHER=1
+    volumes:
+      # :z for SELinux compatibility
+      - .:/app:z
+      # Mounting the Wayland socket
+      - ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:z
+      # Persistence for Rust crates and build artifacts
+      - cargo-cache:/usr/local/cargo
+      - target-cache:/app/src-tauri/target
+      # Required for WebKit sandbox in rootless Podman
+    security_opt:
+      - label=disable
+      - seccomp=unconfined
+    network_mode: "host"
+    # Entrypoint installs deps and starts the Jean dev server
+    command: /bin/bash -c "bun install && bun run tauri:dev"
+    logging:
+      driver: k8s-file
+      options:
+        max-size: "1mb"
+        max-file: "3"
+    init: true
+
+volumes:
+  cargo-cache:
+  target-cache:

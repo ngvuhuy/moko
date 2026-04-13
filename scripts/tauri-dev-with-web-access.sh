@@ -52,11 +52,15 @@ trap cleanup EXIT INT TERM
 
 cd "${ROOT_DIR}"
 
-echo "Starting web access dist watcher..."
-bun run dev:web &
-WEB_WATCHER_PID=$!
+if [[ "${JEAN_DISABLE_WEB_WATCHER:-0}" == "1" ]]; then
+  echo "Web access dist watcher disabled via JEAN_DISABLE_WEB_WATCHER=1"
+else
+  echo "Starting web access dist watcher..."
+  bun run dev:web &
+  WEB_WATCHER_PID=$!
 
-wait_for_web_dist
+  wait_for_web_dist
+fi
 
 echo "Starting Vite dev server for Tauri..."
 bun run dev &
